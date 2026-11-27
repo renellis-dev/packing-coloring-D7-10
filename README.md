@@ -52,12 +52,12 @@ It reproduces the same state count, transition count and $H(s_0)=569$.
 
 ## Credits
 
-**Author:** Ren Ellis
+**Authors:** Ren Ellis, ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google)
 
-**AI assistance.** In line with arXiv and publisher policies, AI tools are credited here and in the paper's AI-use statement, not as authors:
-- **ChatGPT / Codex** (OpenAI) did the computational search and produced the certificates and verifiers.
-- **Claude** (Anthropic) did the independent re-verification and prepared the manuscript.
-- **Gemini** (Google) was also used during the work.
+- **Ren Ellis** initiated and directed the project and checked the results. As the human author, Ren Ellis is the corresponding author and takes responsibility for the content.
+- **ChatGPT / Codex** did the computational search and produced the colouring, the certificates and the verifiers in `certificates/`.
+- **Claude** wrote the independent re-verification in `independent-check/` and prepared the manuscript.
+- **Gemini** wrote the prompts that directed ChatGPT/Codex's search.
 
 ## 中文摘要
 
