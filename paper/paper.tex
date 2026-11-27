@@ -1,0 +1,255 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=1in]{geometry}
+\usepackage{amssymb,booktabs,hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\cp}{\chi_\rho}
+
+\title{The packing chromatic number of the distance graph $D(7,10)$ is between 21 and 29}
+\author{AUTHOR NAME}
+\date{27 November 2026}
+
+\begin{abstract}
+For the integer distance graph $D(7,10)$, we prove
+$21\le \cp(D(7,10))\le 29$. The previously published bounds were
+$12\le \cp(D(7,10))\le 40$, from Ekstein, Holub and Togni. The upper bound
+comes from an explicit periodic packing colouring with period $1088$. The
+lower bound is a density argument. Its main ingredient is an integer
+potential certifying that colours $1$, $2$ and $4$ together occupy at most
+a $67/102$ fraction of any long interval. A periodic partial colouring shows
+that this constant is attained. All certificates can be checked with short
+standard-library programs. Two independently written implementations
+reproduce every number used in the proof.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+Let $G$ be a graph with distance function $d_G$. A \emph{packing
+$k$-colouring} of $G$ is a map $f\colon V(G)\to\{1,\dots,k\}$ such that
+$f(u)=f(v)=i$ with $u\ne v$ implies $d_G(u,v)>i$. The \emph{packing
+chromatic number} $\cp(G)$ is the least $k$ for which such a colouring
+exists. The notion was introduced by Goddard et al.~\cite{GHHHR08} under
+the name broadcast chromatic number. Brešar, Ferme, Klavžar and Rall survey
+the area in~\cite{BFKR20}.
+
+For positive integers $k<t$, the \emph{distance graph} $D(k,t)$ has vertex
+set $\mathbb Z$. Two integers are adjacent when their difference is $\pm k$
+or $\pm t$. Packing colourings of distance graphs were studied by
+Togni~\cite{Tog14}. For two-element distance sets they were studied by
+Ekstein, Holub and Togni~\cite{EHT14}, whose Table~1 lists
+$12\le\cp(D(7,10))\le 40$. In that table, the lower bound comes from a
+finite subgraph and the upper bound from a periodic construction. Related
+work includes $S$-packing colourings of two-step distance
+graphs~\cite{BFHJM24}. Closest to the present method is Zhang's use of
+finite-state integer certificates for joint colour densities in
+$D(1,t)$~\cite{Zha26}. As far as we could find, no improvement of the
+$D(7,10)$ entry has been published.
+
+\begin{theorem}\label{thm:main}
+$21\le \cp(D(7,10))\le 29$.
+\end{theorem}
+
+\section{Distance balls}
+
+Let $B_0=\{0\}$ and
+$B_{r+1}=B_r\cup(B_r\pm7)\cup(B_r\pm10)$. By induction, $B_r$ is the set of
+integers at graph distance at most $r$ from $0$. Since the graph is
+translation invariant, $d(x,y)\le r$ if and only if $y-x\in B_r$.
+A colouring is therefore a packing colouring if and only if, for every
+colour $c$ and every $d\in B_c\setminus\{0\}$, no two integers at difference
+$d$ both receive colour $c$. Every element of $B_r$ has absolute value at most $10r$.
+
+\begin{lemma}\label{lem:ball}
+For $8\le c\le 20$ we have $\{1,\dots,10c-15\}\subseteq B_c$, and
+$10c-14\notin B_c$.
+\end{lemma}
+\begin{proof}
+Direct finite computation (\texttt{certificates/verify\_lower.cjs}).
+\end{proof}
+
+Consequently, two integers of colour $c\ge 8$ are at least $10c-14$ apart, so any interval of length $N$
+contains at most $1+\lfloor (N-1)/(10c-14)\rfloor\le N/(10c-14)+1$ of them.
+
+\section{The upper bound}
+
+The file \texttt{certificates/coloring.txt} contains a word
+$w=w_0w_1\cdots w_{1087}$ over $\{1,\dots,29\}$, in which every symbol
+occurs. Colour $x\in\mathbb Z$ with $w_{x\bmod 1088}$.
+
+\begin{proposition}
+This colouring is a packing $29$-colouring of $D(7,10)$.
+\end{proposition}
+\begin{proof}
+Suppose two integers $x<y$ share colour $c$ and $y-x\in B_c$. Translate by a
+multiple of $1088$ so that $0\le x<1088$. It therefore suffices to check, for every
+residue $i$ with $w_i=c$ and every positive $d\in B_c$, that
+$w_{(i+d)\bmod 1088}\ne c$. This finite check passes. It also covers
+the case $d\equiv 0\pmod{1088}$, but that case cannot occur because
+$\max B_{29}=290<1088$.
+\end{proof}
+
+\section{The lower bound}
+
+\subsection{Automata and potentials}
+
+Fix a set $S$ of colours. A \emph{partial $S$-colouring} of an interval
+assigns each position a colour in $S$ or a blank $0$, subject to the packing
+condition for the colours in $S$. For a single colour $c$, read positions
+from left to right and maintain a set $M_c\subseteq\{0,1,\dots,10c-1\}$:
+$j\in M_c$ means that some earlier point of colour $c$ forbids colour $c$ at
+$j$ positions ahead. Colour $c$ may be placed only if $0\notin M_c$. To advance,
+subtract $1$ from every element and discard negatives. If $c$ was placed,
+add $\{d-1: d\in B_c,\ d>0\}$. For several colours, run one such
+automaton per colour, and allow at most one placement per step. Starting
+from the empty state, the words accepted are exactly the partial
+$S$-colourings of an interval. Restricting a packing colouring of $\mathbb Z$ to an interval $I$, and blanking the colours outside $S$,
+gives such a word of length $|I|$.
+
+Give a transition weight $w=1$ if it places a colour and $w=0$ otherwise.
+
+\begin{lemma}\label{lem:potential}
+Let $\mathcal S$ be a set of states that contains the empty state $s_0$ and
+is closed under all legal transitions. Let $p,q$ be positive integers. Suppose
+$H\colon\mathcal S\to\mathbb Z_{\ge0}$ satisfies
+\[ q\,w(s,t)-p\le H(s)-H(t) \]
+for every legal transition $s\to t$. Then every partial $S$-colouring of an
+interval $I$ has at most $\frac pq|I|+\frac{H(s_0)}{q}$ coloured positions.
+\end{lemma}
+\begin{proof}
+Sum the inequality along the run $s_0\to s_1\to\dots\to s_{|I|}$. The
+right-hand side telescopes to $H(s_0)-H(s_{|I|})\le H(s_0)$.
+\end{proof}
+
+All bounds below have the form $N_S(I)\le r_S|I|+C_S$ with $C_S$
+independent of $I$ and of the colouring. Here $N_S(I)$ is the number of positions of $I$ with a colour in $S$. They can therefore be added on a common interval, and no
+assumption that colour densities exist is needed.
+
+\subsection{Colours 1, 2 and 4 together}
+
+\begin{proposition}\label{prop:124}
+In every packing colouring of $D(7,10)$ and every interval $I$,
+\[ 102\,N_{\{1,2,4\}}(I)\le 67|I|+569. \]
+The constant $67/102$ is best possible.
+\end{proposition}
+\begin{proof}
+The single-colour automata for colours $1$, $2$ and $4$ have $169$, $639$
+and $533$ states. Their product, restricted to the states reachable from the empty
+state, has $24\,274\,996$ states and $45\,060\,505$ legal transitions. The
+file \texttt{certificates/potential-124.u16le.gz} assigns a value in
+$\{0,\dots,65534\}$ to each reachable state, and $65535$ to the others. The
+verifier rebuilds the automata from the step set $\{\pm7,\pm10\}$. It checks
+that $s_0$ has a value and that every legal successor of a valued state has a value,
+and it checks the inequality of Lemma~\ref{lem:potential} with $(p,q)=(67,102)$
+on every transition. The value at $s_0$ is $569$.
+
+For optimality, \texttt{certificates/density-124.txt} is a word of length
+$102$ over $\{0,1,2,4\}$ with $67$ non-blank letters. Repeated periodically,
+it passes the same check as in the upper bound.
+\end{proof}
+
+\begin{remark}
+Taken separately, the exact maximum densities of colours $1$, $2$, $4$ are
+$8/17$, $7/37$ and $3/41$ (computed by Karp's maximum mean cycle
+algorithm~\cite{Kar78}). Their sum is about $0.733$, while
+$67/102\approx0.657$. The joint certificate is therefore essential.
+\end{remark}
+
+\subsection{Colours 3, 5, 6, 7}
+
+For each of these colours the single-colour automaton is small. Iterating
+$H_{j+1}(s)=\max\bigl(H_j(s),\max_{s\to t}\{H_j(t)+q\,w(s,t)-p\}\bigr)$ from
+$H_0\equiv0$ reaches a fixed point. A fixed point satisfies the hypothesis of
+Lemma~\ref{lem:potential}.
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+colour & states & $p/q$ & $H(s_0)$\\
+\midrule
+3 & 558 & $2/17$ & 45\\
+5 & 273 & $2/45$ & 84\\
+6 & 289 & $2/55$ & 104\\
+7 & 289 & $1/34$ & 62\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each of these four ratios equals the maximum cycle mean of the
+corresponding automaton, so they are the exact maximum densities.
+
+\subsection{Conclusion of the proof}
+
+Suppose $f$ is a packing $20$-colouring of $D(7,10)$, and let $I$ be an
+interval of length $N$. Every position carries one of the colours
+$1,\dots,20$. Adding Proposition~\ref{prop:124}, the table above and
+Lemma~\ref{lem:ball} gives
+\[ N\le \sigma N + C, \]
+where $C$ is a constant independent of $N$ and
+\[
+\sigma=\frac{67}{102}+\frac2{17}+\frac2{45}+\frac2{55}+\frac1{34}
++\sum_{c=8}^{20}\frac1{10c-14}
+=\frac{128279378457743209}{128437412456857504}<1 .
+\]
+For large $N$ this is impossible. Hence $\cp(D(7,10))\ge21$, which completes
+the proof of Theorem~\ref{thm:main}. \qed
+
+\begin{remark}
+The margin is small: $1-\sigma\approx1.23\times10^{-3}$. Replacing
+$67/102$ by the sum of the separate maxima of colours $1,2,4$ would give
+$\sigma>1$. Joint certificates for larger colour sets may raise the lower
+bound further.
+\end{remark}
+
+\section{Reproducibility}
+
+The repository accompanying this note contains:
+\begin{itemize}
+\item \texttt{certificates/}: the two periodic words, the compressed potential, and the
+verifiers \texttt{verify\_upper.py} (Python~3) and \texttt{verify\_lower.cjs}
+(Node.js). Both use only the standard library. The lower-bound
+verifier runs in about a second.
+\item \texttt{independent-check/}: a second implementation, written
+separately. It checks the periodic words with breadth-first graph
+distances instead of balls. It recomputes the single-colour maximum
+densities with Karp's algorithm. It also recomputes the joint
+$\{1,2,4\}$ potential from scratch by value iteration, without using the
+supplied certificate, and obtains the same state count, transition count and
+$H(s_0)=569$.
+\end{itemize}
+
+\section*{Acknowledgements}
+
+The search for the colouring and the certificates was carried out with AI
+coding agents (OpenAI Codex/GPT). The independent re-verification was done
+with Anthropic's Claude. The author checked the results and is responsible for
+the content.
+
+\begin{thebibliography}{9}
+\bibitem{BFHJM24} B.~Brešar, J.~Ferme, P.~Holub, M.~Jakovac, P.~Melicharová,
+$S$-packing colorings of distance graphs with distance sets of cardinality
+2, arXiv:2405.18904, 2024.
+\bibitem{BFKR20} B.~Brešar, J.~Ferme, S.~Klavžar, D.~F.~Rall, A survey on
+packing colorings, \emph{Discuss. Math. Graph Theory} 40 (2020) 923--970,
+doi:10.7151/dmgt.2320.
+\bibitem{EHT14} J.~Ekstein, P.~Holub, O.~Togni, The packing coloring of
+distance graphs $D(k,t)$, \emph{Discrete Appl. Math.} 167 (2014) 100--106,
+doi:10.1016/j.dam.2013.10.036; arXiv:1302.0721.
+\bibitem{GHHHR08} W.~Goddard, S.~M.~Hedetniemi, S.~T.~Hedetniemi,
+J.~M.~Harris, D.~F.~Rall, Broadcast chromatic numbers of graphs,
+\emph{Ars Combin.} 86 (2008) 33--49.
+\bibitem{Kar78} R.~M.~Karp, A characterization of the minimum cycle mean in
+a digraph, \emph{Discrete Math.} 23 (1978) 309--311.
+\bibitem{Tog14} O.~Togni, On packing colorings of distance graphs,
+\emph{Discrete Appl. Math.} 167 (2014) 280--289.
+\bibitem{Zha26} E.~Zhang, Density regions, integer certificates and packing
+colorings of distance graphs, arXiv:2609.09018, 2026.
+\end{thebibliography}
+
+\end{document}
